@@ -1,0 +1,176 @@
+{
+  "name": "GeoAI",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an AI that summarizes website content. \nRead the {{$json.data.markdown}} and produce exactly 5 bullet points highlighting the key ideas.\n\nRules:\n- Output must be in bullet points only.\n- Do not include extra commentary.\n- Each bullet point should be concise (max 20 words).\n\n",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "f792c6f7-2bf9-4ab8-949c-ad3e88744208",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        416,
+        192
+      ],
+      "id": "100922f0-32f8-4c44-84e0-ae82bb9b8788",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "X883kQjIzNlxJxFK",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"format_final_json_response\": {\n    \"IndustrialLaborerSummary\": {\n      \"keyPoints\": [\n        \"Must have relevant skills and follow safety rules\",\n        \"Keep documents ready and be reliable for shifts\",\n        \"Companies value adaptability, punctuality, and teamwork\"\n      ]\n    }\n  }\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        560,
+        192
+      ],
+      "id": "3d13a67d-3500-4d18-927d-becd76393183",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "formTitle": "Geo AI web Scraper",
+        "formDescription": "Enter the industry website link to scrap the information of the industry",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "URL",
+              "placeholder": "e.g. https://pccoepune.com",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "136c1c36-ed63-4040-a6ee-c9019485f17a",
+      "name": "On form submission",
+      "webhookId": "bf830102-98d9-4b08-bcc0-52f79b5446af"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v2/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer $FIRECRAWL_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"url\": \"https://www.nrindustriespune.com/\",\n  \"formats\": [\n    \"markdown\"\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "16787b5a-34c1-421a-bfb8-c0710d1c53ba",
+      "name": "FireCrawler",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dyNlQXhNbwey9tgu",
+          "name": "Firecrawl_scraper"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "FireCrawler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FireCrawler": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5f606240-bd4d-4623-af4d-fc65541c4041",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1eba4b92b8e40ad4a794e2a8f28a76657cb7da228e0b42f8513e1352d2fe26b2"
+  },
+  "id": "ZPN3t7tnt4g4uGGE",
+  "tags": []
+}
